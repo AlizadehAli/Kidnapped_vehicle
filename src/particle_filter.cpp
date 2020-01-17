@@ -22,6 +22,8 @@ using std::string;
 using std::vector;
 
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
+  std::default_random_engine gen;
+
   /**
    * TODO: Set the number of particles. Initialize all particles to 
    *   first position (based on estimates of x, y, theta and their uncertainties
@@ -30,8 +32,29 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
    * NOTE: Consult particle_filter.h for more information about this method 
    *   (and others in this file).
    */
-  num_particles = 0;  // TODO: Set the number of particles
+  num_particles = 200;  // TODO: Set the number of particles
 
+  double std_x std_y std_theta
+  std_x = std[0];
+  std_y = std[1];
+  std_theta = std[2];
+
+  // create Gaussian distributions with mean value of x, y and theta from GPS data
+  // adding Gaussian ransom noise
+  std::normal_distribution<double> dist_x(x, std_x);
+  std::normal_distribution<double> dist_y(y, std_y);
+  std::normal_distribution<double> dist_theta(theta, std_theta);
+
+  weight.resize(num_particles); // resize the wight vector to new particle size
+  particles = vector<Particle>(num_particles)
+  for (int i=0; i<num_particles; ++i){
+    particle.x = dist_x(gen);
+    particle.y = dist_y(gen);
+    particle.theta = dist_theta(gen);
+    particle.weight = 1.0; // set all weights to 1.
+    particles[i] = particle;
+  }
+  is_initialized = true
 }
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], 
@@ -63,7 +86,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
                                    const vector<LandmarkObs> &observations, 
                                    const Map &map_landmarks) {
   /**
-   * TODO: Update the weights of each particle using a mult-variate Gaussian 
+   * TODO: Update the weights of each particle using a multi-variate Gaussian
    *   distribution. You can read more about this distribution here: 
    *   https://en.wikipedia.org/wiki/Multivariate_normal_distribution
    * NOTE: The observations are given in the VEHICLE'S coordinate system. 
