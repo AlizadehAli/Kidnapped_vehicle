@@ -138,7 +138,69 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   and the following is a good resource for the actual equation to implement
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
    */
+  /*
+      Steps followed in this function:
 
+        1. Transform each observation marker from the vehicle's coordinates to
+              the map's coordinates with respect to the particle.
+
+        2. Data assocociation; associate each transformed observation with a land mark identifier.
+
+        3. Particle weights: product of Multivariate-Gaussian probability measurements.
+   */
+
+  for(int i=0; i<num_particles; i++){
+      vector<LandmarkObs> lm_obsMap;
+
+      for(int j=0; j<map_landmarks.landmark_list.size(); j++){
+          LandmarkObs lm;
+
+          lm.x = map_landmarks.landmark_list[j].x_f;
+          lm.y = map_landmarks.landmark_list[j].y_f;
+          lm.id= map_landmarks.landmark_list[j].id_i;
+
+          if( dist(lm.x, lm.y, particles[i].x, particles[i].y) < sensor_range){
+              lm_obsMap.push_back(lm);
+          }
+      }
+
+      vector<LandmarkObs> vec_obs;
+      for(int j=0; j<observations.size(); j++){
+          LandmarkObs tObs;
+
+          tObs.x  = particles[i].x + observations[j].x*cos(particles[i].theta) -
+                                     observations[j].y*sin(particles[j].theta);
+          tObs.y  = particles[i].y + observations[j].x*sin(particles[i].theta) +
+                                     observations[j].y*cos(particles[j].theta);
+          vec_obs.push_back(tObs);
+      }
+
+      dataAssociation(lm_obsMap, vec_obs);
+
+      particles[i].weight = 1;
+      vector<double> vec_senseX;
+      vector<double> vec_senseY;
+      vector<int> vec_associations;
+
+      for(int j=0; j<vec_obs.size(); j++){
+          double ox = vec_obs[j].x;
+          double oy = vec_obs[j].y;
+          int    associateId = vec_obs[j].id;
+
+          double ux = lm_obsMap[associateId].x;
+          double uy = lm_obsMap[associateId].y;
+
+          double up = (ox - ux)*(ox - ux)/(2*std_landmark[0]*std_landmark[0]) +
+                      (oy - uy)*(oy - uy)/(2*std_landmark[1]*std_landmark[1]);
+
+          double Pxy = 1.0 / (2*M_PI*std_landmark[0]*std_landmark[1]) * pow(M_E, -1*up);
+          vec_senseX.push_back(ox);
+          vec_senseY.push_back(oy);
+          vec_associations.push_back(associateId);
+          particles[i].weight *= Pxy;
+      }
+      SetAssociations(particles[i], vec_associations, vec_senseX, vec_senseY);
+    }
 }
 
 void ParticleFilter::resample() {
