@@ -25,6 +25,19 @@ A robot has been kidnapped and transported to a new location! Luckily it has a m
 | best_particle_sense_x | List of sensed x positions |
 | best_particle_sense_y | List of sensed y positions |
 
+## Project steps
+
+Localization (particle filter) steps in this project:
+
+* Initialization function (estimate position from GPS data using particle filters, add random noise)
+* Prediction function (predict position based on adding velocity and yaw rate to particle filters, add random noise)
+* Update Weights function - Transformation of observation points to map coordinates (given in vehicle coordinates)
+* Update Weights function - Association of landmarks to the transformed observation points
+* Update Weights function - Calculation of multi-variate Gaussian distribution
+* Resample function - Resamples particles, with replacement occurring based on weighting distributions
+* Optimizing algorithm - Performance within required accuracy and speed
+
+
 ## Running the Code
 This project involves the Term 2 Simulator which can be downloaded [here](https://github.com/udacity/self-driving-car-sim/releases). The main program can be built and ran by doing the following from the project top directory.
 
@@ -77,6 +90,15 @@ root
 ```
 Success! Your particle filter passed!
 ```
+
+The accuracy limit is defined as 1 meter in error for x and y translations, 0.05 rad in error for yaw, and 100 seconds of runtime for the particle filter. The accuracy of my code is measured by the error values as follows which are in the aforementioned limit.
+
+| **Variable** | **Error** |
+|:---------:|:---------:|
+| x position | 0.115 |
+| y position | 0.106 |
+| yaw | 0.004 |
+
 
 2. **Performance**: My particle filter completes execution within 48 seconds which is below the time limit of 100 seconds.
 
